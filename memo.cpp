@@ -26,6 +26,29 @@ std::function <R (A)> memoize(std::function<R (A)> f){
   return memf;
 }
 
+//Version 4
+template<class R, class... A>
+std::function <R (A...)> memoizem(std::function<R (A...)> f){
+  std::function <R (A...)> memf;
+  memf = [&f](A... args){
+    static std::map<std::tuple<A...>, R> cache;
+    std::tuple<A...> t (args...);
+    if(cache.find(t) != cache.end()){
+      return cache[t];
+    }
+
+    R a = f(args...);
+    cache.insert(std::pair<std::tuple<A...>, R>(t, a));
+    return a;
+  };
+  return memf;
+}
+
+int add(int x, int y){
+  std::cout << "called" << std::endl;
+  return x+y;
+}
+
 
 int main(int argc, char **argv){
   //Version 1
@@ -63,6 +86,9 @@ int main(int argc, char **argv){
   //Version 3
   std::function<int (int)> memfactt = memoize((std::function<int(int)>)factorial);
 
+  //Version 4
+  std::function<int (int, int)> addm = memoizem((std::function<int(int, int)>)add);
+
   //Tests for 1
   std::cout << "Version 1: No templates - does not work with recursion" << std::endl;
   std::cout << memfact(5) << std::endl << std::endl;
@@ -83,5 +109,10 @@ int main(int argc, char **argv){
   std::cout << memfactt(10) << std::endl << std::endl;
   std::cout << memfactt(6) << std::endl << std::endl;
   std::cout << memfactt(10) << std::endl << std::endl;
+
+  //Tests for 4
+  std::cout << "Version 4: Templates for multiple arguments - does not work with recursion" << std::endl;
+  std::cout << addm(5, 6) << std::endl;
+  std::cout << addm(5, 6) << std::endl;
   return 0;
 }
